@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
-import loanData from './loan_data.csv';
 import ReactFileReader from 'react-file-reader';
 
 
@@ -11,7 +9,6 @@ class App extends Component {
     super();
 
     this.state = {
-      isLoading: false,
       loans: [],
       showException1: true,
       showException2: true,
@@ -23,15 +20,9 @@ class App extends Component {
 
   }
 
-  componentWillMount() {
-  }
 
   handleFileUpload(files) {
     console.log("Reading file...");
-
-    this.setState({
-      isLoading: true
-    });
 
     let reader = new FileReader();
     let _this = this;
@@ -39,7 +30,6 @@ class App extends Component {
     reader.onload = function(e) {
       const Papa = require("papaparse/papaparse.min.js");
       let result = Papa.parse(reader.result, {header: true});
-      console.log(result);
       _this.setState({
         loans: result.data
       });
@@ -47,14 +37,7 @@ class App extends Component {
     
     reader.readAsText(files[0]);
 
-    this.setState({
-      isLoading: false
-    });
-
     console.log("done!");
-  }
-
-  componentWillMount() {
   }
 
   evaluateLoan(loan) {
@@ -172,19 +155,16 @@ class App extends Component {
       const difference = CMS - totalMonthlyIncome;
       const percent = (difference / CMS) * 100;
 
-      console.log(loan["Loan ID"] + ": " + percent);
-      console.log(percent > 50);
-
-      if (percent <= 10)            { grade -= exceptionCosts[4]["<10"][fitchProductCategory]; }
+      if (percent <= 10)       { grade -= exceptionCosts[4]["<10"][fitchProductCategory]; }
       else if (percent <= 20)  { grade -= exceptionCosts[4]["10-20"][fitchProductCategory]; }
       else if (percent <= 30)  { grade -= exceptionCosts[4]["20-30"][fitchProductCategory]; }
       else if (percent <= 50)  { grade -= exceptionCosts[4]["30-50"][fitchProductCategory]; }
-      else if (percent > 50)        { grade -= exceptionCosts[4][">50"][fitchProductCategory]; console.log(">50") }
+      else if (percent > 50)   { grade -= exceptionCosts[4][">50"][fitchProductCategory]; }
 
     }
 
     loan.grade = grade;
-    loan.exceptionIDs = exceptions.join('|');
+    loan.exceptionIDs = exceptions.join(' | ');
 
     return loan;
   }
@@ -287,7 +267,7 @@ class App extends Component {
       showException3,
       showException4, 
       showPerfect,
-      sortBy 
+      sortBy,
     } = this.state;
 
     let { loans } = this.state; 
@@ -300,23 +280,23 @@ class App extends Component {
 
 
     // Filters
-    if (sortBy == "idASC") {
+    if (sortBy === "idASC") {
       loans = loans.sort(function(a,b) {
         return a['Loan ID'] - b['Loan ID'];
       });
 
-    } else if (sortBy == "idDESC") {
+    } else if (sortBy === "idDESC") {
       loans = loans.sort(function(a,b) {
         return b['Loan ID'] - a['Loan ID'];
       });
     }
 
-    else if (sortBy == "gradeASC") {
+    else if (sortBy === "gradeASC") {
       loans = loans.sort(function(a,b) {
         return a.grade - b.grade;
       });
 
-    } else if (sortBy == "gradeDESC") {
+    } else if (sortBy === "gradeDESC") {
       loans = loans.sort(function(a,b) {
         return b.grade - a.grade;
       });
@@ -326,10 +306,12 @@ class App extends Component {
 
 
 
+    // Construct a table row for each Loan, and make hidden when filtered out
     const loanList = loans.map(function(loan) {
 
       let hide = false;
-      if (!showPerfect && loan.grade == 100) { hide = true; }
+
+      if (!showPerfect && loan.grade === 100) { hide = true; }
       if (!showException1 && loan.exceptionIDs.includes("1")) { hide = true; }
       if (!showException2 && loan.exceptionIDs.includes("2")) { hide = true; }
       if (!showException3 && loan.exceptionIDs.includes("3")) { hide = true; }
@@ -354,11 +336,11 @@ class App extends Component {
         
         <div className="filters">
           <p>Filters:</p>
-          <input type="checkbox" onClick={this.toggleShowPerfect.bind(this)} checked={showPerfect}></input><label> Show Perfect Loans</label>
-          <input type="checkbox" onClick={this.toggleShowException.bind(this, 1)} checked={showException1}></input><label> Show Loans with Exception 1</label>
-          <input type="checkbox" onClick={this.toggleShowException.bind(this, 2)} checked={showException2}></input><label> Show Loans with Exception 2</label>
-          <input type="checkbox" onClick={this.toggleShowException.bind(this, 3)} checked={showException3}></input><label> Show Loans with Exception 3</label>
-          <input type="checkbox" onClick={this.toggleShowException.bind(this, 4)} checked={showException4}></input><label> Show Loans with Exception 4</label>
+          <input type="checkbox" onChange={this.toggleShowPerfect.bind(this)} checked={showPerfect}></input><label> Show Perfect Loans</label>
+          <input type="checkbox" onChange={this.toggleShowException.bind(this, 1)} checked={showException1}></input><label> Show Loans with Exception 1</label>
+          <input type="checkbox" onChange={this.toggleShowException.bind(this, 2)} checked={showException2}></input><label> Show Loans with Exception 2</label>
+          <input type="checkbox" onChange={this.toggleShowException.bind(this, 3)} checked={showException3}></input><label> Show Loans with Exception 3</label>
+          <input type="checkbox" onChange={this.toggleShowException.bind(this, 4)} checked={showException4}></input><label> Show Loans with Exception 4</label>
         </div>
 
         <div className="loan-counter">
@@ -371,16 +353,16 @@ class App extends Component {
               <th onClick={this.toggleIDSort.bind(this)}>
                 <a className="sortlink sortlink__id">
                 ID&nbsp;
-                {(sortBy === "idASC") ? <span class="glyphicon glyphicon-chevron-down"></span> : null }
-                {(sortBy === "idDESC") ? <span class="glyphicon glyphicon-chevron-up"></span> : null }
+                {(sortBy === "idASC") ? <span className="glyphicon glyphicon-chevron-down"></span> : null }
+                {(sortBy === "idDESC") ? <span className="glyphicon glyphicon-chevron-up"></span> : null }
                 </a>
               </th>
               
               <th onClick={this.toggleGradeSort.bind(this)}>
                 <a className="sortlink sortlink__grade">
                  Grade&nbsp;
-                {(sortBy === "gradeASC") ? <span class="glyphicon glyphicon-chevron-down"></span> : null }
-                {(sortBy === "gradeDESC") ? <span class="glyphicon glyphicon-chevron-up"></span> : null }
+                {(sortBy === "gradeASC") ? <span className="glyphicon glyphicon-chevron-down"></span> : null }
+                {(sortBy === "gradeDESC") ? <span className="glyphicon glyphicon-chevron-up"></span> : null }
                 </a>
               </th>
               
