@@ -170,13 +170,16 @@ class App extends Component {
     if ( CMS > totalMonthlyIncome) {
       exceptions.push(4);
       const difference = CMS - totalMonthlyIncome;
-      const percent = difference / CMS * 100;
+      const percent = (difference / CMS) * 100;
+
+      console.log(loan["Loan ID"] + ": " + percent);
+      console.log(percent > 50);
 
       if (percent <= 10)            { grade -= exceptionCosts[4]["<10"][fitchProductCategory]; }
-      else if (10 < percent <= 20)  { grade -= exceptionCosts[4]["10-20"][fitchProductCategory]; }
-      else if (20 < percent <= 30)  { grade -= exceptionCosts[4]["20-30"][fitchProductCategory]; }
-      else if (30 < percent <= 50)  { grade -= exceptionCosts[4]["30-50"][fitchProductCategory]; }
-      else if (percent > 50)        { grade -= exceptionCosts[4][">50"][fitchProductCategory]; }
+      else if (percent <= 20)  { grade -= exceptionCosts[4]["10-20"][fitchProductCategory]; }
+      else if (percent <= 30)  { grade -= exceptionCosts[4]["20-30"][fitchProductCategory]; }
+      else if (percent <= 50)  { grade -= exceptionCosts[4]["30-50"][fitchProductCategory]; }
+      else if (percent > 50)        { grade -= exceptionCosts[4][">50"][fitchProductCategory]; console.log(">50") }
 
     }
 
@@ -279,7 +282,6 @@ class App extends Component {
   render() {
     
     const { 
-      isLoading, 
       showException1,
       showException2,
       showException3,
@@ -289,18 +291,11 @@ class App extends Component {
     } = this.state;
 
     let { loans } = this.state; 
+    let loansShown = loans.length
 
-    // Loans need to be evaluated to enable sorting
+    // Loans need to be evaluated prior to JSX render to enable sorting/filtering
     for (var i = loans.length - 1; i >= 0; i--) {
       loans[i] = this.evaluateLoan(loans[i]);
-
-      if (!showPerfect && loans[i].grade == 100) { loans[i].hide = true; } else { loans[i].hide = false; }
-      if (loans[i].exceptionIDs.length > 0) {
-        if (!showException1 && loans[i].exceptionIDs.includes("1") ) { loans[i].hide = true; } else { loans[i].hide = false; }
-        if (!showException2 && loans[i].exceptionIDs.includes("2") ) { loans[i].hide = true; } else { loans[i].hide = false; }
-        if (!showException3 && loans[i].exceptionIDs.includes("3") ) { loans[i].hide = true; } else { loans[i].hide = false; }
-        if (!showException4 && loans[i].exceptionIDs.includes("4") ) { loans[i].hide = true; } else { loans[i].hide = false; }
-      }
     }
 
 
@@ -332,8 +327,18 @@ class App extends Component {
 
 
     const loanList = loans.map(function(loan) {
+
+      let hide = false;
+      if (!showPerfect && loan.grade == 100) { hide = true; }
+      if (!showException1 && loan.exceptionIDs.includes("1")) { hide = true; }
+      if (!showException2 && loan.exceptionIDs.includes("2")) { hide = true; }
+      if (!showException3 && loan.exceptionIDs.includes("3")) { hide = true; }
+      if (!showException4 && loan.exceptionIDs.includes("4")) { hide = true; }
+
+      if (hide) { loansShown--; } 
+
       return(
-        <tr className={loan.hide ? "hidden" : ""} key={loan['Loan ID'] + loan['Data Extract Date']}>
+        <tr className={hide ? "hidden" : ""} key={loan['Loan ID'] + loan['Data Extract Date']}>
           <td>{loan["Loan ID"]}</td>
           <td>{loan.grade}</td>
           <td>{loan.exceptionIDs}</td>
@@ -346,8 +351,6 @@ class App extends Component {
         <ReactFileReader handleFiles={this.handleFileUpload.bind(this)} fileTypes={'.csv'}>
           <button className='btn btn-primary'>Upload CSV</button>
         </ReactFileReader>
-
-        <h1 className={isLoading ?  'loading-indicator' : 'loading-indicator hidden'}>Loading...</h1>
         
         <div className="filters">
           <p>Filters:</p>
@@ -358,11 +361,29 @@ class App extends Component {
           <input type="checkbox" onClick={this.toggleShowException.bind(this, 4)} checked={showException4}></input><label> Show Loans with Exception 4</label>
         </div>
 
+        <div className="loan-counter">
+          <p className="loan-count">(Showing {loansShown} loans out of {loans.length}).</p>          
+        </div>
+
         <table className="table table-responsive">
           <thead>
             <tr>
-              <th onClick={this.toggleIDSort.bind(this)}><a className="sortlink sortlink__id">ID</a></th>
-              <th onClick={this.toggleGradeSort.bind(this)}><a className="sortlink sortlink__grade">Grade</a></th>
+              <th onClick={this.toggleIDSort.bind(this)}>
+                <a className="sortlink sortlink__id">
+                ID&nbsp;
+                {(sortBy === "idASC") ? <span class="glyphicon glyphicon-chevron-down"></span> : null }
+                {(sortBy === "idDESC") ? <span class="glyphicon glyphicon-chevron-up"></span> : null }
+                </a>
+              </th>
+              
+              <th onClick={this.toggleGradeSort.bind(this)}>
+                <a className="sortlink sortlink__grade">
+                 Grade&nbsp;
+                {(sortBy === "gradeASC") ? <span class="glyphicon glyphicon-chevron-down"></span> : null }
+                {(sortBy === "gradeDESC") ? <span class="glyphicon glyphicon-chevron-up"></span> : null }
+                </a>
+              </th>
+              
               <th>Exception(s)</th>
             </tr>
           </thead>

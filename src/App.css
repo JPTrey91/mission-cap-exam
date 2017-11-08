@@ -27,8 +27,18 @@
   to { transform: rotate(360deg); }
 }
 
-.filters label {
+.container {
+  margin-top: 25px;
+}
+
+.filters label, .filters p {
   float: left;
+}
+
+.loan-counter {
+  clear: both;
+  float: right;
+  text-align: right;
 }
 
 input[type=checkbox] {
