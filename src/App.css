@@ -26,3 +26,17 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+.filters label {
+  float: left;
+}
+
+input[type=checkbox] {
+  float: left;
+  clear: both;
+  margin-right: 5px;
+}
+
+td {
+  text-align: left;
+}
